@@ -6,7 +6,8 @@ import AgoraCall from "./pages/agoraCall";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<AgoraCall />} />
+      <Route path="/" element={<div>Home</div>} />
+      <Route path="/agora-call" element={<AgoraCall />} />
     </Routes>
   );
 }
