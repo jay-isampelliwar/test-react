@@ -36,18 +36,25 @@ const VideoCallApp = () => {
   } = useAgoraCall();
 
   return (
-    <div className="min-h-screen bg-slate-50 p-5 font-sans">
-      <div className="text-center mb-10">
+    <div className="min-h-screen bg-gray-100 w-full">
+      <div className="text-center mb-10 pt-8">
         <h1 className="text-4xl font-bold text-slate-800 mb-2">
           🎥 Agora Video Call
         </h1>
         <p className="text-lg text-slate-600">
-          {isConnected ? "Connected to channel" : "Join a video call channel"}
+          {isConnected
+            ? `Connected to channel: ${channel}`
+            : "Join a video call channel"}
         </p>
+        {isConnected && (
+          <p className="text-sm text-slate-500 mt-2">
+            Share channel name "{channel}" with others to join the call
+          </p>
+        )}
       </div>
 
       {isConnected ? (
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full px-4">
           {/* Main content area for remote users */}
           <div className="mb-8">
             <RemoteUsersGrid remoteUsers={remoteUsers} />

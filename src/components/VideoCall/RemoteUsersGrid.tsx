@@ -5,27 +5,33 @@ interface RemoteUsersGridProps {
 }
 
 export const RemoteUsersGrid = ({ remoteUsers }: RemoteUsersGridProps) => {
-  if (remoteUsers.length === 0) return null;
+  if (remoteUsers.length === 0) {
+    return (
+      <div className="mt-8 text-center">
+        <div className="bg-white p-10 rounded-2xl shadow-lg">
+          <h3 className="text-xl font-semibold text-slate-800 mb-4">
+            Waiting for other participants...
+          </h3>
+          <p className="text-slate-600">
+            Share this channel name with others to start the video call
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-8">
-      <h3 className="text-2xl font-semibold text-slate-800 mb-5">
-        Remote Participants ({remoteUsers.length})
-      </h3>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {remoteUsers.map((user) => (
+      {remoteUsers.map((user) => {
+        return (
           <div key={user.uid} className="relative">
             <RemoteUser
               user={user}
-              className="w-full h-[500px] rounded-xl overflow-hidden shadow-lg"
-            >
-              <div className="absolute bottom-5 left-5 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                <span className="font-medium">User {user.uid}</span>
-              </div>
-            </RemoteUser>
+              style={{ width: "100%", height: "70vh" }}
+            ></RemoteUser>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };

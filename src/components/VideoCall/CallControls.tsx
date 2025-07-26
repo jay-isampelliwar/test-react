@@ -16,8 +16,8 @@ export const CallControls = ({
   onToggleCall,
 }: CallControlsProps) => {
   return (
-    <div className="mt-10 flex justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-2xl">
+    <div className="mt-10 flex justify-center px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-4xl">
         <h3 className="text-xl font-semibold text-slate-800 mb-5 text-center">
           Call Controls
         </h3>
