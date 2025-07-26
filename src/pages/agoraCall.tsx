@@ -6,6 +6,7 @@ import {
   RemoteUsersGrid,
   CallControls,
 } from "../components/VideoCall";
+import ScreenShareLocalUser from "../components/VideoCall/ScreenShareLocalUser";
 
 const AgoraCall = () => {
   const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -24,13 +25,16 @@ const VideoCallApp = () => {
     isConnected,
     micOn,
     cameraOn,
+    screenSharing,
     appId,
     channel,
     remoteUsers,
     localMicrophoneTrack,
     localCameraTrack,
+    screenTrack,
     toggleMic,
     toggleCamera,
+    toggleScreenShare,
     toggleCall,
     joinChannel,
   } = useAgoraCall();
@@ -57,6 +61,11 @@ const VideoCallApp = () => {
         <div className="w-full px-4">
           {/* Main content area for remote users */}
           <div className="mb-8">
+            <ScreenShareLocalUser
+              screenTrack={screenTrack}
+              screenSharing={screenSharing}
+              onToggleScreenShare={toggleScreenShare}
+            />
             <RemoteUsersGrid remoteUsers={remoteUsers} />
           </div>
 
@@ -72,9 +81,11 @@ const VideoCallApp = () => {
           <CallControls
             micOn={micOn}
             cameraOn={cameraOn}
+            screenSharing={screenSharing}
             calling={calling}
             onToggleMic={toggleMic}
             onToggleCamera={toggleCamera}
+            onToggleScreenShare={toggleScreenShare}
             onToggleCall={toggleCall}
           />
         </div>

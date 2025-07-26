@@ -4,6 +4,7 @@ import {
   useJoin,
   useLocalMicrophoneTrack,
   useLocalCameraTrack,
+  useLocalScreenTrack,
   usePublish,
   useRemoteUsers,
 } from "agora-rtc-react";
@@ -17,22 +18,34 @@ export const useAgoraCall = () => {
   );
   const [micOn, setMic] = useState(true);
   const [cameraOn, setCamera] = useState(true);
+  const [screenSharing, setScreenSharing] = useState(false);
 
   const isConnected = useIsConnected();
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
   const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+  const { screenTrack } = useLocalScreenTrack(screenSharing, {}, "disable");
   const remoteUsers = useRemoteUsers();
 
   useJoin(
     { appid: appId, channel: channel, token: token ? token : null },
     calling
   );
-  usePublish([localMicrophoneTrack, localCameraTrack]);
+  
+  // Publish tracks including screen track when screen sharing is active
+  const tracksToPublish = [localMicrophoneTrack, localCameraTrack];
+  if (screenSharing && screenTrack) {
+    tracksToPublish.push(screenTrack as any);
+  }
+  usePublish(tracksToPublish);
 
   const toggleMic = () => setMic((prev) => !prev);
   const toggleCamera = () => setCamera((prev) => !prev);
   const toggleCall = () => setCalling((prev) => !prev);
   const joinChannel = () => setCalling(true);
+  
+  const toggleScreenShare = () => {
+    setScreenSharing((prev) => !prev);
+  };
 
   return {
     // State
@@ -40,6 +53,7 @@ export const useAgoraCall = () => {
     isConnected,
     micOn,
     cameraOn,
+    screenSharing,
     appId,
     channel,
     remoteUsers,
@@ -47,10 +61,12 @@ export const useAgoraCall = () => {
     // Tracks
     localMicrophoneTrack,
     localCameraTrack,
+    screenTrack,
     
     // Actions
     toggleMic,
     toggleCamera,
+    toggleScreenShare,
     toggleCall,
     joinChannel,
   };
