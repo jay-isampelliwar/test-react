@@ -14,7 +14,7 @@ export const useAgoraCall = () => {
   const [appId] = useState("5712bb769baf481487093bcc0d423673");
   const [channel] = useState("Test");
   const [token] = useState(
-    "007eJxTYPg2K/nAJG2xoKVtM73d8ifJWHIdtVOcUrD92jyXM63rbqUpMJiaGxolJZmbWSYlpplYGJpYmBtYGiclJxukmBgZm5kb65a2ZDQEMjJwuU9iYWSAQBCfhSEktbiEgQEA/UIdmA=="
+    "007eJxTYEiT5P39J+z0FYvUcCth15L3rQ5CPpxVr759nl21f/+bsDMKDKbmhkZJSeZmlkmJaSYWhiYW5gaWxknJyQYpJkbGZubGD562ZjQEMjJIxOiyMDJAIIjPwhCSWlzCwAAAZTsfkg=="
   );
   const [micOn, setMic] = useState(true);
   const [cameraOn, setCamera] = useState(true);
