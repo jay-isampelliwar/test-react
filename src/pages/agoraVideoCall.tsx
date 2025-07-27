@@ -1,5 +1,5 @@
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
-import { useAgoraCall } from "../hooks/useAgoraCall";
+import { useAgoraCall } from "../hooks/useAgoraVideoCall";
 import {
   JoinScreen,
   FloatingLocalUser,
@@ -64,7 +64,6 @@ const VideoCallApp = () => {
             <ScreenShareLocalUser
               screenTrack={screenTrack}
               screenSharing={screenSharing}
-              onToggleScreenShare={toggleScreenShare}
             />
             <RemoteUsersGrid remoteUsers={remoteUsers} />
           </div>
