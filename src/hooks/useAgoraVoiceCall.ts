@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   useIsConnected,
   useJoin,
@@ -18,7 +18,7 @@ export const useAgoraVoiceCall = () => {
   );
   const [micOn, setMic] = useState(true);
   const isConnected = useIsConnected();
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
+  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true); // Always create track
   const remoteUsers = useRemoteUsers();
   
   // Get remote audio tracks
@@ -28,6 +28,13 @@ export const useAgoraVoiceCall = () => {
     { appid: appId, channel: channel, token: token ? token : null },
     calling
   );
+  
+  // Control microphone track enabled state
+  React.useEffect(() => {
+    if (localMicrophoneTrack) {
+      localMicrophoneTrack.setEnabled(micOn);
+    }
+  }, [localMicrophoneTrack, micOn]);
   
   // Publish tracks
   const tracksToPublish = [localMicrophoneTrack];
