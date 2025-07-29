@@ -2,9 +2,15 @@ interface JoinScreenProps {
   appId: string;
   channel: string;
   onJoin: () => void;
+  setReceiver: (receiver: string) => void;
 }
 
-export const JoinScreen = ({ appId, channel, onJoin }: JoinScreenProps) => {
+export const JoinScreen = ({
+  appId,
+  channel,
+  onJoin,
+  setReceiver,
+}: JoinScreenProps) => {
   return (
     <div className="flex justify-center items-center min-h-[60vh]">
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md">
@@ -18,7 +24,10 @@ export const JoinScreen = ({ appId, channel, onJoin }: JoinScreenProps) => {
               : "bg-blue-500 text-white hover:bg-blue-600"
           }`}
           disabled={!appId || !channel}
-          onClick={onJoin}
+          onClick={() => {
+            onJoin();
+            setReceiver("receiver");
+          }}
         >
           <span>🚀 Join Channel</span>
         </button>

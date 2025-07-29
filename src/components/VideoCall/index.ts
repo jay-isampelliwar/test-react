@@ -5,4 +5,6 @@ export { CallControls } from './CallControls';
 export { AudioCallControls } from './AudioCallControls';
 export { AudioUsersGrid } from './AudioUsersGrid';
 export { DeviceErrorPopup } from './DeviceErrorPopup';
-export { TestModeToggle } from './TestModeToggle'; 
+export { TestModeToggle } from './TestModeToggle';
+export { default as RemoteUserComponent } from './RemoteUserComponent';
+export { default as LocalUserComponent } from './LocalUserComponent'; 

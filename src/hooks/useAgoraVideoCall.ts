@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   useIsConnected,
   useJoin,
@@ -20,6 +20,8 @@ export const useAgoraCall = () => {
   const [micOn, setMic] = useState(true);
   const [cameraOn, setCamera] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
+  const [isScreenSharingLoading, setIsScreenSharingLoading] = useState(false);
+  const screenSharingRef = useRef(false);
   
   // Error handling states
   const [deviceError, setDeviceError] = useState<string | null>(null);
@@ -76,6 +78,66 @@ export const useAgoraCall = () => {
   const { screenTrack } = useLocalScreenTrack(screenSharing, {}, "disable");
   const remoteUsers = useRemoteUsers();
 
+  // Handle screen sharing state synchronization with browser events
+  useEffect(() => {
+    if (screenTrack) {
+      // Listen for when screen sharing is stopped from browser UI
+      const handleTrackEnded = () => {
+        console.log("Screen sharing track ended");
+        setScreenSharing(false);
+        screenSharingRef.current = false;
+      };
+
+      // Add event listeners to the screen track
+      if (screenTrack.getMediaStreamTrack) {
+        const mediaStreamTrack = screenTrack.getMediaStreamTrack();
+        if (mediaStreamTrack) {
+          mediaStreamTrack.addEventListener('ended', handleTrackEnded);
+        }
+      }
+
+      // Cleanup function
+      return () => {
+        if (screenTrack.getMediaStreamTrack) {
+          const mediaStreamTrack = screenTrack.getMediaStreamTrack();
+          if (mediaStreamTrack) {
+            mediaStreamTrack.removeEventListener('ended', handleTrackEnded);
+          }
+        }
+      };
+    }
+  }, [screenTrack]);
+
+  // Listen for browser screen sharing events
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Check if screen sharing is still active when page becomes visible
+      if (screenSharing && document.visibilityState === 'visible') {
+        // If we're screen sharing but the track is not available, stop sharing
+        if (!screenTrack) {
+          setScreenSharing(false);
+          screenSharingRef.current = false;
+        }
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      // Stop screen sharing when page is about to unload
+      if (screenSharing) {
+        setScreenSharing(false);
+        screenSharingRef.current = false;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [screenSharing, screenTrack]);
+
   // Handle track creation errors
   useEffect(() => {
     if (micError) {
@@ -120,9 +182,78 @@ export const useAgoraCall = () => {
   const toggleCall = () => setCalling((prev) => !prev);
   const joinChannel = () => setCalling(true);
   
-  const toggleScreenShare = () => {
-    setScreenSharing((prev) => !prev);
-  };
+  // Helper function to force stop screen sharing
+  const forceStopScreenSharing = useCallback(async () => {
+    try {
+      // Try to access the screen sharing API to trigger any active streams to stop
+      // This is a workaround for browsers that don't properly stop screen sharing
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        // Request a new screen share to potentially interrupt existing ones
+        const stream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: true
+        });
+        // Immediately stop the new stream
+        stream.getTracks().forEach(track => track.stop());
+      }
+    } catch (error) {
+      console.log("Screen sharing force stop completed or no active streams");
+    }
+  }, []);
+  
+  const toggleScreenShare = useCallback(async () => {
+    try {
+      if (screenSharing) {
+        // Stop screen sharing
+        console.log("Stopping screen sharing from UI");
+        
+        // Update ref first
+        screenSharingRef.current = false;
+        
+        // First, stop the screen track if it exists
+        if (screenTrack) {
+          try {
+            // Stop all tracks in the screen stream
+            if (screenTrack.getMediaStreamTrack) {
+              const mediaStreamTrack = screenTrack.getMediaStreamTrack();
+              if (mediaStreamTrack) {
+                mediaStreamTrack.stop();
+              }
+            }
+            
+            // Also try to close the track using Agora's method
+            if (screenTrack.close) {
+              screenTrack.close();
+            }
+          } catch (trackError) {
+            console.warn("Error stopping screen track:", trackError);
+          }
+        }
+        
+        // Try to force stop screen sharing
+        await forceStopScreenSharing();
+        
+        // Update the state
+        setScreenSharing(false);
+        setIsScreenSharingLoading(false);
+      } else {
+        // Start screen sharing
+        console.log("Starting screen sharing from UI");
+        setIsScreenSharingLoading(true);
+        setScreenSharing(true);
+        screenSharingRef.current = true;
+        // Reset loading state after a short delay
+        setTimeout(() => {
+          setIsScreenSharingLoading(false);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Screen sharing toggle failed:", error);
+      // Reset state if there's an error
+      setScreenSharing(false);
+      screenSharingRef.current = false;
+      setIsScreenSharingLoading(false);
+    }
+  }, [screenSharing, screenTrack, forceStopScreenSharing]);
 
   const clearDeviceError = () => {
     setDeviceError(null);
@@ -199,6 +330,7 @@ export const useAgoraCall = () => {
     micOn,
     cameraOn,
     screenSharing,
+    isScreenSharingLoading,
     appId,
     channel,
     remoteUsers,
