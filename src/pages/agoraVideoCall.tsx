@@ -111,15 +111,17 @@ const VideoCallApp = () => {
 
               {/* Local user panel (right side) */}
               <div className="bg-gray-800 rounded-lg relative overflow-hidden">
-                {localCameraTrack && cameraOn ? (
-                  <LocalUser
-                    audioTrack={localMicrophoneTrack}
-                    cameraOn={cameraOn}
-                    micOn={micOn}
-                    playAudio={false}
-                    videoTrack={localCameraTrack}
-                    className="w-full h-full object-cover"
-                  />
+                <LocalUser
+                  audioTrack={localMicrophoneTrack}
+                  cameraOn={cameraOn}
+                  micOn={micOn}
+                  playAudio={false}
+                  videoTrack={localCameraTrack}
+                  className="w-full h-full object-cover"
+                />
+
+                {/* {localCameraTrack ? (
+                  <div></div>
                 ) : (
                   <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                     <div className="text-center">
@@ -155,7 +157,7 @@ const VideoCallApp = () => {
                       )}
                     </div>
                   </div>
-                )}
+                )} */}
                 <div className="absolute bottom-2 left-2 text-white text-sm">
                   You
                 </div>
