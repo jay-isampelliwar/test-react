@@ -14,3 +14,17 @@ function App() {
 }
 
 export default App;
+
+// {
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "name": "Debug App",
+//       "type": "chrome",
+//       "request": "launch",
+//       "url": "http://localhost:5173",
+//       "webRoot": "${workspaceFolder}/src",
+//       "sourceMaps": true
+//     }
+//   ]
+// }
