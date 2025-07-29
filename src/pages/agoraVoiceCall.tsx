@@ -4,6 +4,7 @@ import {
   JoinScreen,
   AudioCallControls,
   AudioUsersGrid,
+  DeviceErrorPopup,
 } from "../components/VideoCall";
 
 const AgoraCall = () => {
@@ -26,10 +27,13 @@ const AudioCallApp = () => {
     channel,
     remoteUsers,
     localMicrophoneTrack,
-
+    deviceError,
+    isCheckingDevices,
     toggleMic,
     toggleCall,
     joinChannel,
+    clearDeviceError,
+    retryDeviceCheck,
   } = useAgoraVoiceCall();
 
   return (
@@ -74,6 +78,14 @@ const AudioCallApp = () => {
       ) : (
         <JoinScreen appId={appId} channel={channel} onJoin={joinChannel} />
       )}
+
+      {/* Device Error Popup */}
+      <DeviceErrorPopup
+        error={deviceError}
+        isCheckingDevices={isCheckingDevices}
+        onClose={clearDeviceError}
+        onRetry={retryDeviceCheck}
+      />
     </div>
   );
 };

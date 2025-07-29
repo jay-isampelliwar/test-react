@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useIsConnected,
   useJoin,
@@ -7,7 +7,7 @@ import {
   useRemoteUsers,
   useRemoteAudioTracks,
 } from "agora-rtc-react";
-
+import { getDevicePermissions, getErrorMessage, type DeviceInfo } from "../utils/deviceUtils";
 
 export const useAgoraVoiceCall = () => {
   const [calling, setCalling] = useState(false);
@@ -17,12 +17,63 @@ export const useAgoraVoiceCall = () => {
     "007eJxTYEiT5P39J+z0FYvUcCth15L3rQ5CPpxVr759nl21f/+bsDMKDKbmhkZJSeZmlkmJaSYWhiYW5gaWxknJyQYpJkbGZubGD562ZjQEMjJIxOiyMDJAIIjPwhCSWlzCwAAAZTsfkg=="
   );
   const [micOn, setMic] = useState(true);
+  
+  // Error handling states
+  const [deviceError, setDeviceError] = useState<string | null>(null);
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [isCheckingDevices, setIsCheckingDevices] = useState(false);
+  
   const isConnected = useIsConnected();
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true); // Always create track
+  
+  // Check device permissions and availability
+  const checkDevicePermissions = useCallback(async () => {
+    setIsCheckingDevices(true);
+    setDeviceError(null);
+    
+    try {
+      const info = await getDevicePermissions();
+      setDeviceInfo(info);
+      
+      // Update device states based on permissions
+      if (info.microphonePermission === 'denied' || !info.hasMicrophone) {
+        setMic(false);
+      }
+      
+      // Get error message if any
+      const errorMessage = getErrorMessage(info);
+      if (errorMessage) {
+        setDeviceError(errorMessage);
+      }
+      
+    } catch (error) {
+      console.error("Device permission check failed:", error);
+      setDeviceError("Failed to check device permissions. Please refresh the page and try again.");
+    } finally {
+      setIsCheckingDevices(false);
+    }
+  }, []);
+
+  // Check permissions on mount
+  useEffect(() => {
+    checkDevicePermissions();
+  }, [checkDevicePermissions]);
+  
+  const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(
+    micOn && deviceInfo?.microphonePermission !== 'denied' && deviceInfo?.hasMicrophone !== false
+  );
   const remoteUsers = useRemoteUsers();
   
   // Get remote audio tracks
   const remoteAudioTracks = useRemoteAudioTracks(remoteUsers);
+
+  // Handle microphone track creation errors
+  useEffect(() => {
+    if (micError) {
+      console.error("Microphone track error:", micError);
+      setDeviceError("Failed to access microphone. Please check your device permissions.");
+      setMic(false);
+    }
+  }, [micError]);
 
   useJoin(
     { appid: appId, channel: channel, token: token ? token : null },
@@ -37,7 +88,7 @@ export const useAgoraVoiceCall = () => {
   }, [localMicrophoneTrack, micOn]);
   
   // Publish tracks
-  const tracksToPublish = [localMicrophoneTrack];
+  const tracksToPublish = [localMicrophoneTrack].filter(Boolean);
   usePublish(tracksToPublish);
 
   // Track audio states for remote users
@@ -53,10 +104,22 @@ export const useAgoraVoiceCall = () => {
     });
   }, [remoteUsers, remoteAudioTracks.audioTracks]);
 
-  const toggleMic = () => setMic((prev) => !prev);
+  const toggleMic = useCallback(() => {
+    if (deviceInfo?.microphonePermission !== 'denied' && deviceInfo?.hasMicrophone !== false) {
+      setMic((prev) => !prev);
+    }
+  }, [deviceInfo]);
+  
   const toggleCall = () => setCalling((prev) => !prev);
   const joinChannel = () => setCalling(true);
   
+  const clearDeviceError = () => {
+    setDeviceError(null);
+  };
+
+  const retryDeviceCheck = () => {
+    checkDevicePermissions();
+  };
 
   return {
     // State
@@ -67,13 +130,19 @@ export const useAgoraVoiceCall = () => {
     channel,
     remoteUsers: remoteUsersWithAudioState,
     
+    // Device states
+    deviceError,
+    deviceInfo,
+    isCheckingDevices,
+    
     // Tracks
     localMicrophoneTrack,
 
-    
     // Actions
     toggleMic,
     toggleCall,
     joinChannel,
+    clearDeviceError,
+    retryDeviceCheck,
   };
 }; 
