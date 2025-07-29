@@ -7,4 +7,5 @@ export { AudioUsersGrid } from './AudioUsersGrid';
 export { DeviceErrorPopup } from './DeviceErrorPopup';
 export { TestModeToggle } from './TestModeToggle';
 export { default as RemoteUserComponent } from './RemoteUserComponent';
-export { default as LocalUserComponent } from './LocalUserComponent'; 
+export { default as LocalUserComponent } from './LocalUserComponent';
+export { ChatPanel } from './ChatPanel'; 

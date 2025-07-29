@@ -5,9 +5,11 @@ import {
   DeviceErrorPopup,
   RemoteUserComponent,
   LocalUserComponent,
+  ChatPanel,
 } from "../components/VideoCall";
 import { useState } from "react";
 import ScreenShareLocalUser from "../components/VideoCall/ScreenShareLocalUser";
+import { ErrorPopup } from "../components";
 
 const AgoraCall = () => {
   const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -50,12 +52,32 @@ const VideoCallApp = () => {
     simulateNoMicrophone,
     simulateNoDevices,
     resetDevices,
+    // Chat states
+    userId,
+    receptor,
+    singleMessage,
+    isChatConnected,
+    isChatLoggedIn,
+    messages,
+    isChatLoading,
+    chatError,
+    showChat,
+    // Chat actions
+    setUserId,
+    setReceptor,
+    setSingleMessage,
+    handleChatLogin,
+    handleSendMessage,
+    clearChatError,
+    setShowChat,
   } = useAgoraCall();
 
   return (
     <div className="min-h-screen bg-gray-900 w-full relative">
       {isConnected ? (
-        <div className="w-full h-screen flex flex-col">
+        <div
+          className={`w-full h-screen flex flex-col ${showChat ? "mr-80" : ""}`}
+        >
           {/* Main video area */}
           <div className="flex-1 p-4">
             {screenSharing && screenTrack ? (
@@ -155,6 +177,19 @@ const VideoCallApp = () => {
                   {isScreenSharingLoading ? "⏳" : screenSharing ? "⏹️" : "🖥️"}
                 </button>
               </div>
+
+              {/* Right side controls */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowChat(!showChat)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors text-xl ${
+                    showChat ? "bg-blue-500" : "bg-gray-600 hover:bg-gray-500"
+                  }`}
+                  title={showChat ? "Close Chat" : "Open Chat"}
+                >
+                  💬
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -164,6 +199,12 @@ const VideoCallApp = () => {
           channel={channel}
           onJoin={joinChannel}
           setReceiver={setReceiver}
+          userId={userId}
+          receptor={receptor}
+          onUserIdChange={setUserId}
+          onReceptorChange={setReceptor}
+          onChatLogin={handleChatLogin}
+          isChatLoading={isChatLoading}
         />
       )}
 
@@ -178,6 +219,19 @@ const VideoCallApp = () => {
           deviceError?.includes("Camera") || deviceError?.includes("camera")
         }
       />
+
+      {/* Chat Panel */}
+      <ChatPanel
+        messages={messages}
+        singleMessage={singleMessage}
+        onMessageChange={setSingleMessage}
+        onSendMessage={handleSendMessage}
+        onClose={() => setShowChat(false)}
+        isVisible={showChat && isChatLoggedIn}
+      />
+
+      {/* Chat Error Popup */}
+      <ErrorPopup error={chatError} onClose={clearChatError} />
     </div>
   );
 };

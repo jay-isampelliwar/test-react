@@ -9,6 +9,11 @@ import {
   useRemoteUsers,
 } from "agora-rtc-react";
 import { getDevicePermissions, getErrorMessage, type DeviceInfo } from "../utils/deviceUtils";
+import AC, { AgoraChat } from "agora-chat";
+import useRegisterUser from "./useRegisterUser";
+import useUserStatus from "./userUserStatus";
+import { generateToken } from "../utils/tokenGenerator";
+import type { ChatMessage } from "../types/chat";
 
 export const useAgoraCall = () => {
   const [calling, setCalling] = useState(false);
@@ -27,6 +32,21 @@ export const useAgoraCall = () => {
   const [deviceError, setDeviceError] = useState<string | null>(null);
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [isCheckingDevices, setIsCheckingDevices] = useState(false);
+
+  // Chat states
+  const [userId, setUserId] = useState("");
+  const [receptor, setReceptor] = useState("");
+  const [singleMessage, setSingleMessage] = useState("");
+  const [isChatConnected, setIsChatConnected] = useState(false);
+  const [isChatLoggedIn, setIsChatLoggedIn] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  
+  // Chat connection ref
+  const agoraConn = useRef<AgoraChat.Connection | null>(null);
+  const appToken = "611374477#1580634";
 
   const isConnected = useIsConnected();
   
@@ -65,6 +85,194 @@ export const useAgoraCall = () => {
   useEffect(() => {
     checkDevicePermissions();
   }, [checkDevicePermissions]);
+
+  // Chat auto-scroll effect
+  useEffect(() => {
+    const chatContainer = document.querySelector('.chat-messages');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [messages]);
+
+  // Initialize chat connection
+  const startChatConnection = useCallback(async () => {
+    try {
+      agoraConn.current = await new AC.connection({
+        appKey: appToken,
+      });
+
+      agoraConn.current.addEventHandler("connection&message", {
+        onConnected: () => {
+          setIsChatConnected(true);
+        },
+        onDisconnected: () => {
+          setIsChatConnected(false);
+          setIsChatLoggedIn(false);
+        },
+        onTextMessage: (message) => {
+          if (message.chatType === "singleChat") {
+            const newMessage: ChatMessage = {
+              id: message.id || Date.now().toString(),
+              from: message.from || "Unknown",
+              to: message.to || userId || "",
+              message: message.msg || "",
+              timestamp: new Date(),
+              isOwn: false,
+            };
+            setMessages((prev) => [...prev, newMessage]);
+          }
+        },
+        onTokenWillExpire: () => {
+          setChatError("Token is about to expire");
+        },
+        onTokenExpired: () => {
+          setChatError("The token has expired");
+        },
+        onError: (error) => {
+          setChatError("Connection error occurred");
+          console.error("Agora connection error:", error);
+        },
+      });
+    } catch (error) {
+      setChatError("Failed to initialize connection");
+      console.error("Connection initialization error:", error);
+    }
+  }, [userId]);
+
+  // Initialize chat connection on mount
+  useEffect(() => {
+    startChatConnection();
+    return () => {
+      if (agoraConn.current) {
+        agoraConn.current.removeEventHandler("connection&message");
+      }
+    };
+  }, [startChatConnection]);
+
+  // Custom hooks for chat
+  const { registerUser, status: registerStatus } = useRegisterUser();
+  const { getUserStatus, userExists } = useUserStatus();
+
+  // Handle user token generation
+  const handleUserToken = useCallback(async (): Promise<string> => {
+    try {
+      const token = await generateToken(userId);
+      if (token) {
+        return token;
+      } else {
+        throw new Error("Failed to generate token");
+      }
+    } catch (error) {
+      throw new Error("Token generation failed");
+    }
+  }, [userId]);
+
+  // Handle user registration
+  const handleUserRegistration = useCallback(async (): Promise<boolean> => {
+    try {
+      await registerUser(userId);
+      return registerStatus;
+    } catch (error) {
+      throw new Error("User registration failed");
+    }
+  }, [userId, registerUser, registerStatus]);
+
+  // Handle chat login
+  const handleChatLogin = useCallback(async () => {
+    if (!userId.trim()) {
+      setChatError("Please enter a valid user ID");
+      return;
+    }
+
+    setIsChatLoading(true);
+    setChatError(null);
+
+    try {
+      // Check if user exists
+      const userExistsResult = await getUserStatus(userId);
+      
+      if (userExistsResult) {
+        // User exists, proceed with login
+        if (agoraConn.current) {
+          const token = await handleUserToken();
+          await agoraConn.current.open({
+            user: userId,
+            accessToken: token,
+          });
+          setIsChatLoggedIn(true);
+        }
+      } else {
+        // User doesn't exist, register first
+        const registrationSuccess = await handleUserRegistration();
+        
+        if (registrationSuccess && agoraConn.current) {
+          const token = await handleUserToken();
+          await agoraConn.current.open({
+            user: userId,
+            accessToken: token,
+          });
+          setIsChatLoggedIn(true);
+        } else {
+          throw new Error("User registration failed");
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Login failed";
+      setChatError(errorMessage);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }, [userId, getUserStatus, handleUserToken, handleUserRegistration]);
+
+  // Handle send message
+  const handleSendMessage = useCallback(() => {
+    if (!singleMessage.trim() || !agoraConn.current) return;
+
+    const option: AgoraChat.CreateMsgType = {
+      chatType: "singleChat",
+      type: "txt",
+      to: receptor,
+      msg: singleMessage,
+    };
+
+    const msg = AC.message.create(option);
+
+    // Add message to local state immediately
+    const newMessage: ChatMessage = {
+      id: Date.now().toString(),
+      from: userId,
+      to: receptor,
+      message: singleMessage,
+      timestamp: new Date(),
+      isOwn: true,
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    setSingleMessage("");
+
+    // Send message to server
+    agoraConn.current
+      .send(msg)
+      .then((res) => {
+        // Update message with server ID
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === newMessage.id ? { ...msg, id: res.localMsgId } : msg
+          )
+        );
+      })
+      .catch((error) => {
+        setChatError("Failed to send message");
+        console.error("Send message error:", error);
+        // Remove message if sending failed
+        setMessages((prev) => prev.filter((msg) => msg.id !== newMessage.id));
+      });
+  }, [singleMessage, receptor, userId]);
+
+  // Clear chat error
+  const clearChatError = useCallback(() => {
+    setChatError(null);
+  }, []);
 
   // Create tracks with error handling
   const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(
@@ -340,6 +548,17 @@ export const useAgoraCall = () => {
     deviceInfo,
     isCheckingDevices,
     
+    // Chat states
+    userId,
+    receptor,
+    singleMessage,
+    isChatConnected,
+    isChatLoggedIn,
+    messages,
+    isChatLoading,
+    chatError,
+    showChat,
+    
     // Tracks
     localMicrophoneTrack,
     localCameraTrack,
@@ -358,5 +577,14 @@ export const useAgoraCall = () => {
     simulateNoMicrophone,
     simulateNoDevices,
     resetDevices,
+    
+    // Chat actions
+    setUserId,
+    setReceptor,
+    setSingleMessage,
+    handleChatLogin,
+    handleSendMessage,
+    clearChatError,
+    setShowChat,
   };
 }; 
