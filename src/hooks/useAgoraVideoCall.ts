@@ -152,7 +152,7 @@ export const useAgoraCall = () => {
 
   // Custom hooks for chat
   const { registerUser, status: registerStatus } = useRegisterUser();
-  const { getUserStatus, userExists } = useUserStatus();
+  const { getUserStatus } = useUserStatus();
 
   // Handle user token generation
   const handleUserToken = useCallback(async (): Promise<string> => {

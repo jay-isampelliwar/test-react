@@ -7,7 +7,7 @@ import {
   LocalUserComponent,
   ChatPanel,
 } from "../components/VideoCall";
-import { useState } from "react";
+
 import ScreenShareLocalUser from "../components/VideoCall/ScreenShareLocalUser";
 import { ErrorPopup } from "../components";
 
@@ -23,10 +23,7 @@ const AgoraCall = () => {
 export default AgoraCall;
 
 const VideoCallApp = () => {
-  const [receiver, setReceiver] = useState<string>("");
-
   const {
-    calling,
     isConnected,
     micOn,
     cameraOn,
@@ -48,15 +45,10 @@ const VideoCallApp = () => {
     clearDeviceError,
     retryDeviceCheck,
     continueWithoutCamera,
-    simulateNoCamera,
-    simulateNoMicrophone,
-    simulateNoDevices,
-    resetDevices,
     // Chat states
     userId,
     receptor,
     singleMessage,
-    isChatConnected,
     isChatLoggedIn,
     messages,
     isChatLoading,
@@ -198,7 +190,6 @@ const VideoCallApp = () => {
           appId={appId}
           channel={channel}
           onJoin={joinChannel}
-          setReceiver={setReceiver}
           userId={userId}
           receptor={receptor}
           onUserIdChange={setUserId}

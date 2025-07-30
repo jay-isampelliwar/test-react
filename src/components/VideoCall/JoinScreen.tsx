@@ -2,7 +2,6 @@ interface JoinScreenProps {
   appId: string;
   channel: string;
   onJoin: () => void;
-  setReceiver: (receiver: string) => void;
   userId: string;
   receptor: string;
   onUserIdChange: (userId: string) => void;
@@ -15,7 +14,6 @@ export const JoinScreen = ({
   appId,
   channel,
   onJoin,
-  setReceiver,
   userId,
   receptor,
   onUserIdChange,
@@ -98,7 +96,6 @@ export const JoinScreen = ({
             disabled={!appId || !channel}
             onClick={() => {
               onJoin();
-              setReceiver("receiver");
             }}
           >
             <span>🚀 Join Video Call</span>

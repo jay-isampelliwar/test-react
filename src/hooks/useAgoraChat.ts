@@ -42,7 +42,7 @@ const useAgoraChat = (): UseAgoraChatReturn => {
 
   // Custom hooks
   const { registerUser, status: registerStatus } = useRegisterUser();
-  const { getUserStatus, userExists } = useUserStatus();
+  const { getUserStatus } = useUserStatus();
 
   // Auto-scroll effect
   useEffect(() => {
