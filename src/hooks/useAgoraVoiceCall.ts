@@ -31,7 +31,8 @@ export const useAgoraVoiceCall = () => {
     setDeviceError(null);
     
     try {
-      const info = await getDevicePermissions();
+      // For audio calls, only check microphone permissions
+      const info = await getDevicePermissions({ checkCamera: false, checkMicrophone: true });
       setDeviceInfo(info);
       
       // Update device states based on permissions

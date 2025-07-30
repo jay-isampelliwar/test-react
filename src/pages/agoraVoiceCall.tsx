@@ -4,7 +4,6 @@ import {
   AudioCallControls,
   AudioUsersGrid,
   DeviceErrorPopup,
-  JoinScreen,
 } from "../components/VideoCall";
 
 const AgoraCall = () => {
@@ -26,7 +25,6 @@ const AudioCallApp = () => {
     appId,
     channel,
     remoteUsers,
-    localMicrophoneTrack,
     deviceError,
     isCheckingDevices,
     toggleMic,
@@ -76,18 +74,21 @@ const AudioCallApp = () => {
           />
         </div>
       ) : (
-        <JoinScreen
-          appId={appId}
-          channel={channel}
-          onJoin={joinChannel}
-          onUserIdChange={() => {}}
-          onReceptorChange={() => {}}
-          setReceiver={() => {}}
-          userId={""}
-          receptor={""}
-          onChatLogin={() => {}}
-          isChatLoading={false}
-        />
+        <div className="flex justify-center">
+          <button
+            className={`py-4 px-6 text-lg font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+              !appId || !channel
+                ? "bg-gray-400 text-white cursor-not-allowed opacity-60"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+            disabled={!appId || !channel}
+            onClick={() => {
+              joinChannel();
+            }}
+          >
+            <span>🚀 Join Audio Call</span>
+          </button>
+        </div>
       )}
 
       {/* Device Error Popup */}

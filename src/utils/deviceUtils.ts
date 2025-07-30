@@ -6,6 +6,11 @@ export interface DeviceInfo {
   isSecureContext: boolean;
 }
 
+export interface DeviceCheckOptions {
+  checkCamera?: boolean;
+  checkMicrophone?: boolean;
+}
+
 export const checkDeviceSupport = (): DeviceInfo => {
   const isSecureContext = window.isSecureContext;
   const hasMediaDevices = !!navigator.mediaDevices;
@@ -19,7 +24,8 @@ export const checkDeviceSupport = (): DeviceInfo => {
   };
 };
 
-export const getDevicePermissions = async (): Promise<DeviceInfo> => {
+export const getDevicePermissions = async (options: DeviceCheckOptions = {}): Promise<DeviceInfo> => {
+  const { checkCamera = true, checkMicrophone = true } = options;
   const baseInfo = checkDeviceSupport();
   
   if (!baseInfo.hasCamera && !baseInfo.hasMicrophone) {
@@ -27,34 +33,38 @@ export const getDevicePermissions = async (): Promise<DeviceInfo> => {
   }
 
   try {
-    // Check camera permission
-    let cameraPermission: 'granted' | 'denied' | 'prompt' = 'prompt';
-    try {
-      const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      cameraPermission = 'granted';
-      cameraStream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          cameraPermission = 'denied';
-        } else if (error.name === 'NotFoundError') {
-          baseInfo.hasCamera = false;
+    // Check camera permission only if requested
+    let cameraPermission: 'granted' | 'denied' | 'prompt' | 'unknown' = 'unknown';
+    if (checkCamera && baseInfo.hasCamera) {
+      try {
+        const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        cameraPermission = 'granted';
+        cameraStream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError') {
+            cameraPermission = 'denied';
+          } else if (error.name === 'NotFoundError') {
+            baseInfo.hasCamera = false;
+          }
         }
       }
     }
 
-    // Check microphone permission
-    let microphonePermission: 'granted' | 'denied' | 'prompt' = 'prompt';
-    try {
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      microphonePermission = 'granted';
-      micStream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          microphonePermission = 'denied';
-        } else if (error.name === 'NotFoundError') {
-          baseInfo.hasMicrophone = false;
+    // Check microphone permission only if requested
+    let microphonePermission: 'granted' | 'denied' | 'prompt' | 'unknown' = 'unknown';
+    if (checkMicrophone && baseInfo.hasMicrophone) {
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        microphonePermission = 'granted';
+        micStream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError') {
+            microphonePermission = 'denied';
+          } else if (error.name === 'NotFoundError') {
+            baseInfo.hasMicrophone = false;
+          }
         }
       }
     }
@@ -81,16 +91,22 @@ export const getErrorMessage = (deviceInfo: DeviceInfo): string | null => {
 
   const errors: string[] = [];
 
-  if (!deviceInfo.hasCamera) {
-    errors.push("Camera not available");
-  } else if (deviceInfo.cameraPermission === 'denied') {
-    errors.push("Camera permission denied");
+  // Only check camera errors if camera permission was actually checked
+  if (deviceInfo.cameraPermission !== 'unknown') {
+    if (!deviceInfo.hasCamera) {
+      errors.push("Camera not available");
+    } else if (deviceInfo.cameraPermission === 'denied') {
+      errors.push("Camera permission denied");
+    }
   }
 
-  if (!deviceInfo.hasMicrophone) {
-    errors.push("Microphone not available");
-  } else if (deviceInfo.microphonePermission === 'denied') {
-    errors.push("Microphone permission denied");
+  // Only check microphone errors if microphone permission was actually checked
+  if (deviceInfo.microphonePermission !== 'unknown') {
+    if (!deviceInfo.hasMicrophone) {
+      errors.push("Microphone not available");
+    } else if (deviceInfo.microphonePermission === 'denied') {
+      errors.push("Microphone permission denied");
+    }
   }
 
   if (errors.length === 0) {
