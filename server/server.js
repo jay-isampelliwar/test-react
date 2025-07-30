@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { ChatTokenBuilder } = require('agora-token');
+const  { ChatTokenBuilder, RtcTokenBuilder, RtcRole } = require('agora-token');
 const fs = require('fs');
 const path = require('path');
 const { log } = require('console');
@@ -62,6 +62,83 @@ app.post('/api/generate-token', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to generate token'
+    });
+  }
+});
+
+// Endpoint 2: Channel Token (group/chat room)
+app.get("/api/token/channel", (req, res) => {
+  try {
+    const { channel, id, type = 1 } = req.query;
+
+    if (!channel || !id) {
+      return res.status(400).json({
+        success: false,
+        error: 'channel and id parameters are required'
+      });
+    }
+
+    // Set the privilege expiry
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expireTimeInSeconds;
+
+    console.log(`Generating channel token for channel: ${channel}, id: ${id}, type: ${type}`);
+
+    // Generate RTC Token for channel
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      appID,
+      appCertificate,
+      channel,
+      id,
+      RtcRole.PUBLISHER,
+      privilegeExpiredTs
+    );
+
+    return res.json({
+      token,
+    });
+
+  } catch (error) {
+    console.error('Channel token generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate channel token'
+    });
+  }
+});
+
+// Endpoint 3: Guest Token (random user)
+app.get("/api/token/guest", (req, res) => {
+  try {
+    const { projectId, type = 'app' } = req.query;
+
+
+    // Set the privilege expiry
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expireTimeInSeconds;
+
+    console.log(`Generating guest token for projectId: ${projectId}, type: ${type}`);
+
+    // Generate Chat App Token (for app-level operations)
+    const token = ChatTokenBuilder.buildAppToken(
+      appID,
+      appCertificate,
+      privilegeExpiredTs
+    );
+
+    return res.json({
+      success: true,
+      token,
+      projectId,
+      type,
+      expireTime: privilegeExpiredTs
+    });
+
+  } catch (err) {
+    console.error('Guest token generation error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
     });
   }
 });
