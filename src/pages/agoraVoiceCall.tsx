@@ -1,10 +1,10 @@
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAgoraVoiceCall } from "../hooks/useAgoraVoiceCall";
 import {
-  JoinScreen,
   AudioCallControls,
   AudioUsersGrid,
   DeviceErrorPopup,
+  JoinScreen,
 } from "../components/VideoCall";
 
 const AgoraCall = () => {
@@ -76,7 +76,18 @@ const AudioCallApp = () => {
           />
         </div>
       ) : (
-        <JoinScreen appId={appId} channel={channel} onJoin={joinChannel} />
+        <JoinScreen
+          appId={appId}
+          channel={channel}
+          onJoin={joinChannel}
+          onUserIdChange={() => {}}
+          onReceptorChange={() => {}}
+          setReceiver={() => {}}
+          userId={""}
+          receptor={""}
+          onChatLogin={() => {}}
+          isChatLoading={false}
+        />
       )}
 
       {/* Device Error Popup */}
