@@ -14,7 +14,7 @@ export const useAgoraVoiceCall = () => {
   const [appId] = useState("5712bb769baf481487093bcc0d423673");
   const [channel] = useState("Test");
   const [token] = useState(
-    "007eJxTYEiT5P39J+z0FYvUcCth15L3rQ5CPpxVr759nl21f/+bsDMKDKbmhkZJSeZmlkmJaSYWhiYW5gaWxknJyQYpJkbGZubGD562ZjQEMjJIxOiyMDJAIIjPwhCSWlzCwAAAZTsfkg=="
+    "007eJxTYGhcbf93/4qb8k4LIs2ZV7qXPpHhEdrQldn7frNe9vWzwpMUGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNV7/tzGgIZGRoyCxiYIRCEJ+FISS1uISBAQA3JR8X"
   );
   const [micOn, setMic] = useState(true);
   
