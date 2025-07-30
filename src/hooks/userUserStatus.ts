@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
 
-const host = "a61.chat.agora.io";
-const org_name = "611374477";
-const app_name = "1580634";
-const admin_token =
+const host = import.meta.env.VITE_AGORA_CHAT_HOST || "a61.chat.agora.io";
+const org_name = import.meta.env.VITE_AGORA_CHAT_ORG_NAME || "611374477";
+const app_name = import.meta.env.VITE_AGORA_CHAT_APP_NAME || "1580634";
+const admin_token = import.meta.env.VITE_AGORA_CHAT_ADMIN_TOKEN || 
   "007eJxTYLCu2bKr6afPBKv4uw8Pc6s/Od5TH/nT6L5ActzvydGzeAQVGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNX7zpzPjxqzNDU2QWCyMDKwMjAxMDiM/AAAAAaSI1";
 
 const useUserStatus = () => {

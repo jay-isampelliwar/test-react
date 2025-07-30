@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
 const  { ChatTokenBuilder, RtcTokenBuilder, RtcRole } = require('agora-token');
@@ -6,28 +7,16 @@ const path = require('path');
 const { log } = require('console');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Load environment variables from config file
-const configPath = path.join(__dirname, 'config.env');
-const configContent = fs.readFileSync(configPath, 'utf8');
-const config = {};
-
-configContent.split('\n').forEach(line => {
-  const [key, value] = line.split('=');
-  if (key && value && !key.startsWith('#')) {
-    config[key.trim()] = value.trim();
-  }
-});
-
-// Agora configuration
-const appID = config.AGORA_APP_ID;
-const appCertificate = config.AGORA_APP_CERTIFICATE;
-const expireTimeInSeconds = parseInt(config.AGORA_TOKEN_EXPIRE_TIME) || 3600;
+// Agora configuration from environment variables
+const appID = process.env.VITE_AGORA_APP_ID;
+const appCertificate = "423dd86106ba4a24ac3c1f24edd53736";
+const expireTimeInSeconds = 3600;
 
 // Token generation endpoint
 app.post('/api/generate-token', (req, res) => {

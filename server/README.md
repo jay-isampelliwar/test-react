@@ -13,8 +13,9 @@ This Express backend server handles Agora token generation securely on the serve
 
 2. **Configure your Agora credentials:**
 
-   - Edit `config.env` file with your Agora App ID and App Certificate
+   - Edit the root `.env` file with your Agora App ID and App Certificate
    - You can find these in your Agora Console
+   - Copy `.env.example` to `.env` and fill in your values
 
 3. **Start the server:**
 
@@ -41,11 +42,19 @@ This Express backend server handles Agora token generation securely on the serve
 - **URL:** `GET /api/health`
 - **Response:** `{ "success": true, "message": "Server is running", "timestamp": "..." }`
 
+## Environment Variables
+
+The server reads configuration from the root `.env` file:
+
+- `VITE_AGORA_APP_ID`: Your Agora App ID
+- App Certificate and other settings are hardcoded for simplicity
+
 ## Security Notes
 
 - Never expose your Agora App Certificate in frontend code
 - Always generate tokens on the server side
 - Consider adding authentication to the token generation endpoint in production
+- Keep your `.env` file secure and never commit it to version control
 
 ## Troubleshooting
 

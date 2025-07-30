@@ -11,10 +11,10 @@ import { getDevicePermissions, getErrorMessage, type DeviceInfo } from "../utils
 
 export const useAgoraVoiceCall = () => {
   const [calling, setCalling] = useState(false);
-  const [appId] = useState("5712bb769baf481487093bcc0d423673");
+  const [appId] = useState(import.meta.env.VITE_AGORA_APP_ID || "5712bb769baf481487093bcc0d423673");
   const [channel] = useState("Test");
   const [token] = useState(
-    "007eJxTYGhcbf93/4qb8k4LIs2ZV7qXPpHhEdrQldn7frNe9vWzwpMUGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNV7/tzGgIZGRoyCxiYIRCEJ+FISS1uISBAQA3JR8X"
+    import.meta.env.VITE_DEFAULT_CALL_TOKEN || "007eJxTYGhcbf93/4qb8k4LIs2ZV7qXPpHhEdrQldn7frNe9vWzwpMUGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNV7/tzGgIZGRoyCxiYIRCEJ+FISS1uISBAQA3JR8X"
   );
   const [micOn, setMic] = useState(true);
   
