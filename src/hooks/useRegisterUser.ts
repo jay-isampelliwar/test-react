@@ -4,7 +4,7 @@ const host = "a61.chat.agora.io";
 const org_name = "611374477";
 const app_name = "1580634";
 const admin_token =
-  "007eJxTYPgTsiomb+7Vlx18mY+K1s7I/W/TFJ38ifnYXcGDrsaZ+2wVGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNPx7tyGgIZGRQ2f2MgZGBFYiZGEB8BgYABoEfcQ==";
+  "007eJxTYLCu2bKr6afPBKv4uw8Pc6s/Od5TH/nT6L5ActzvydGzeAQVGEzNDY2SkszNLJMS00wsDE0szA0sjZOSkw1STIyMzcyNX7zpzPjxqzNDU2QWCyMDKwMjAxMDiM/AAAAAaSI1";
 
 const useRegisterUser = () => {
   const [isLoading, setIsLoading] = useState(false);
