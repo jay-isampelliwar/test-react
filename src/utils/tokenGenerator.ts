@@ -1,5 +1,5 @@
 // Token generation using backend API
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://f4c3c6601330.ngrok-free.app/api';
 
 export async function generateToken(userAccount: string): Promise<string | null> {
   try {
